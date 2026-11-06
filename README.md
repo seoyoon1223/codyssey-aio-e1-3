@@ -62,6 +62,34 @@ Each row below is the measured mean of 10 calls to the MAC function. File I/O an
 
 For an N×N matrix, the nested loops visit every cell once, so the operation count is N² and the time complexity is O(N²). Increasing N from 5 to 25 multiplies the cell count by 25, from 25 to 625. The measured time also rises, though fixed Python call overhead and the very short 10-call sample mean the ratios do not exactly match the operation-count ratio. Larger repeat counts would reduce timing noise without changing the algorithm complexity.
 
+## Extending labels and dataset cases
+
+The current exercise intentionally has two canonical classes. To add another spelling for an existing class:
+
+1. Add the spelling to normalize_label and map it to the existing canonical label.
+2. Add a unit test for the new spelling and for an unsupported spelling that must still be rejected.
+3. Add or update a data.json case using the spelling in expected or the filter key.
+4. Run the focused unit tests, then run the complete JSON analysis.
+5. Confirm that the normalized label, chosen filter, and PASS/FAIL summary agree.
+
+A genuinely new class needs an explicit design change because the current classifier compares exactly Cross and X. Add the class filter to each relevant size group, classify all canonical labels, and report UNDECIDED when the best two scores are within epsilon. Add tests for a unique winner, an epsilon tie, missing filters, and malformed matrices before expanding the dataset.
+
+## 1000×1000 scale estimate and optimization policy
+
+The largest measured case is 25×25 at 0.133910 ms per MAC call in this run. A simple linear extrapolation from 625 cells estimates roughly 214 ms for one million cells, or roughly 428 ms to score one pattern against both filters. This is an estimate from a short local microbenchmark, not a measured 1000×1000 result; Python interpreter overhead, CPU load, and memory behavior can change it.
+
+A Python float object and its list reference use roughly 32 bytes per cell before row and container overhead. Three normalized 1000×1000 matrices therefore need about 96 MB, and the original parsed JSON objects may remain alive at the same time. The actual peak can exceed 200 MB after parsed input, normalized copies, and runtime overhead are included. The current loop does not allocate a product matrix, which avoids another million-cell allocation.
+
+The first in-scope optimization is to flatten each validated matrix once into one-dimensional lists and use a single index loop. This removes repeated row lookups while preserving the no-third-party-library rule. If inputs grow beyond available memory, process rows or tiles incrementally and release each tile before reading the next. Profile those changes against the existing implementation and keep them only when they improve the measured workload.
+
+NumPy or a hardware vector backend could process many MAC operations in parallel, but this mission forbids external runtime libraries, so vectorization is not enabled here. If that constraint changes in a later project, vectorized CPU or NPU execution is a second-stage option after measuring data-transfer and setup costs.
+
+## CPU and NPU bottlenecks
+
+The Python CPU implementation executes the nested loop serially. At larger N, its bottlenecks are interpreter and loop overhead, repeated indexing, and moving matrix values through memory; the arithmetic itself is only one multiply and one addition per cell. A CPU can still be efficient for small matrices because it avoids accelerator setup and transfer costs.
+
+An NPU can issue many MAC operations in parallel, but parallel arithmetic does not remove the need to move inputs and filters into accelerator memory. For large workloads, memory bandwidth, data reuse, launch overhead, and synchronization can become the bottleneck even when arithmetic units are available. A practical policy is to keep small cases on the CPU, profile first, then tile large matrices and reuse each input tile across filters. Consider NPU offload only when the workload is large enough to amortize data movement and launch overhead; verify output against the serial reference with the same epsilon rule.
+
 ## Result report and failure analysis
 
 1. The JSON loader checks the top-level object and requires filters and patterns maps.

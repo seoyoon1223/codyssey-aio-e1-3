@@ -1,0 +1,22 @@
+[project]
+name = "codyssey-mini-npu"
+version = "0.1.0"
+description = "A standard-library MAC simulator for Codyssey E1-3"
+requires-python = ">=3.8"
+dependencies = []
+
+[project.scripts]
+mini-npu = "mini_npu.cli:main"
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.uv]
+package = true

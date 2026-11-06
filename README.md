@@ -1,5 +1,9 @@
 # Mini NPU MAC Simulator
 
+**Codyssey Naeto pre-evaluation: 100/100 (20/20 criteria passed, 2026-11-06).**
+
+![Codyssey Naeto pre-evaluation result: 100% (20/20 criteria passed)](assets/naeto-pre-evaluation-100.png)
+
 E1-3 implements the multiply-accumulate (MAC) step behind a small pattern classifier. It compares an input matrix with Cross and X filters using only Python loops and the standard library.
 
 ## Environment

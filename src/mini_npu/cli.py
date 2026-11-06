@@ -45,6 +45,12 @@ def _read_matrix(label: str, size: int) -> list[list[float]]:
             print(f"입력 형식 오류: {error}. 다시 입력하세요.")
 
 
+def _show_matrix(label: str, matrix: list[list[float]]) -> None:
+    print(f"{label}:")
+    for row in matrix:
+        print("  " + " ".join(f"{value:g}" for value in row))
+
+
 def _timed_average(pattern: list[list[float]], matrix: list[list[float]], repeats: int = 10) -> float:
     from time import perf_counter_ns
 
@@ -59,8 +65,12 @@ def _manual_mode() -> int:
     filter_a = _read_matrix("필터 A", 3)
     filter_b = _read_matrix("필터 B", 3)
     print("필터 저장 완료.")
+    print("저장 확인:")
+    _show_matrix("필터 A", filter_a)
+    _show_matrix("필터 B", filter_b)
     print("\n# [2] 패턴 입력")
     pattern = _read_matrix("패턴", 3)
+    _show_matrix("입력 패턴", pattern)
     score_a, score_b = mac(pattern, filter_a), mac(pattern, filter_b)
     decision = classify(score_a, score_b)
     print("\n# [3] MAC 결과")

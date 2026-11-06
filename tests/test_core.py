@@ -17,6 +17,10 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(classify(0.9, 0.9 + 0.5e-9), UNDECIDED)
         self.assertEqual(classify_labels(1.0, 1.0), UNDECIDED)
 
+    def test_manual_classifier_returns_a_or_b_for_a_clear_winner(self):
+        self.assertEqual(classify(5.0, 1.0), "A")
+        self.assertEqual(classify(1.0, 5.0), "B")
+
     def test_label_aliases(self):
         self.assertEqual(normalize_label("+"), "Cross")
         self.assertEqual(normalize_label("cross"), "Cross")

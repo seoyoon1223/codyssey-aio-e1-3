@@ -49,6 +49,31 @@ Total: 6 | Passed: 3 | Failed: 3
 
 The failure cases are reported instead of terminating the application. Their matrices give equal Cross and X scores at the precision used by the MAC loop, so the required epsilon policy cannot justify selecting either label. The expected label records the dataset target, but it does not override an ambiguous score. The other three cases have a strict score winner that matches their normalized expected label.
 
+## Manual 3×3 evidence and tie display
+
+The manual run below used the displayed Cross matrix for both filters and as the input pattern. This makes the equal scores reproducible and shows the saved values, both MAC results, and the measured average in one output:
+
+    저장 확인:
+    필터 A:
+      0 1 0
+      1 1 1
+      0 1 0
+    필터 B:
+      0 1 0
+      1 1 1
+      0 1 0
+    입력 패턴:
+      0 1 0
+      1 1 1
+      0 1 0
+    A 점수: 5
+    B 점수: 5
+    연산 시간(평균/10회): 0.004500 ms
+    판정: 판정 불가 (epsilon 동점)
+    동점 기준: abs(A-B) < 1e-09
+
+Both modes apply the same strict rule, abs(score_a - score_b) < EPSILON, with EPSILON set to 1e-9. The manual path calls classify and renders its UNDECIDED result as “판정 불가 (epsilon 동점)”. The JSON path calls classify_labels, prints “UNDECIDED”, and compares that result with expected; because expected is Cross or X, an ambiguous case is counted as FAIL. The wording differs to fit each mode, while the score rule and neutral outcome stay the same.
+
 ## Performance
 
 Each row below is the measured mean of 10 calls to the MAC function. File I/O and printing are outside the timed section. These small timings vary with machine load.
@@ -109,4 +134,4 @@ An NPU can issue many MAC operations in parallel, but parallel arithmetic does n
 
 ## Verification
 
-python -m unittest discover -s tests -v completed with 5 tests passing. The checks cover known Cross/X MAC scores, epsilon ties, label aliases, matrix-shape validation, and continuing after a malformed dataset case. Both the interactive 3×3 path and the JSON analysis path were also run with uv.
+python -m unittest discover -s tests -v completed with 6 tests passing. The checks cover known Cross/X MAC scores, clear A/B winners, epsilon ties, label aliases, matrix-shape validation, and continuing after a malformed dataset case. Both the interactive 3×3 path and the JSON analysis path were also run with uv.
